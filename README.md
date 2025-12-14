@@ -1,133 +1,205 @@
-Reconocimiento Automático de Dados con OpenCV
-Sistema de visión por computadora para detectar y contar automáticamente los puntos en dados rojos a partir de videos.
-Descripción
-Este proyecto procesa videos de tiradas de dados y realiza:
+# 🎲 Detector de Dados en Video (OpenCV)
 
-Detección de dados rojos mediante segmentación por color (HSV)
-Identificación del momento de quietud tras el lanzamiento
-Conteo automático de puntos usando detección de círculos (Hough Transform)
-Generación de videos anotados con los resultados
+Este proyecto analiza videos de tiradas de dados y detecta automáticamente:
 
-Requisitos
-bashpip install opencv-python numpy matplotlib
-Estructura del Proyecto
-.
-├── main.py
-├── tirada_1.mp4
-├── tirada_2.mp4
-├── tirada_3.mp4
-├── tirada_4.mp4
-└── salidas/
-    ├── tirada_1_reconocimiento_dados.mp4
-    ├── tirada_2_reconocimiento_dados.mp4
-    ├── tirada_3_reconocimiento_dados.mp4
-    └── tirada_4_reconocimiento_dados.mp4
-Uso
-Ejecución Básica
-bashpython main.py
-El script procesará automáticamente los 4 videos de entrada y generará las versiones anotadas en la carpeta salidas/.
-Personalización
-Puedes modificar parámetros clave en la función procesar_video():
-pythonprocesar_video(
-    path_in="tirada_1.mp4",
-    path_out="salidas/resultado.mp4",
-    tiempo_ignorar=1.58,  # Segundos a ignorar al inicio
-    debug_visual=True      # Mostrar pasos intermedios (solo primera vez)
-)
-Funcionamiento
-1. Segmentación por Color
+- La posición de cada dado  
+- La cantidad de puntos en su cara superior  
+- El instante en el que los dados quedan quietos  
+- Un video de salida con anotaciones
 
-Conversión a espacio HSV
-Detección de tonos rojos en dos rangos:
+El código utiliza **OpenCV**, **NumPy** y **Matplotlib**.
 
-Rango 1: H(0-10), S(50-255), V(50-255)
-Rango 2: H(170-180), S(50-255), V(50-255)
+---
 
+## 📦 Requisitos
 
+Instalá las dependencias ejecutando:
 
-2. Detección de Quietud
+```bash
+pip install opencv-python numpy matplotlib
+```
 
-Compara áreas de contornos entre frames consecutivos
-Umbral de diferencia: 45 píxeles²
-Activa el análisis cuando los dados dejan de moverse
+---
 
-3. Análisis de Dados
+## 📁 Estructura esperada
 
-Filtra contornos por área (4300-6400 píxeles²)
-Extrae región de interés (ROI) de cada dado
-Aplica transformación de Hough para detectar círculos (puntos)
-Parámetros de detección:
+El script espera encontrar los siguientes archivos de video en el mismo directorio donde está `main.py`:
 
-Radio mínimo: 5 píxeles
-Radio máximo: 8 píxeles
-Distancia mínima entre círculos: 8 píxeles
+```
+tirada_1.mp4
+tirada_2.mp4
+tirada_3.mp4
+tirada_4.mp4
+```
 
+Además, el script crea automáticamente la carpeta:
 
+```
+salidas/
+```
 
-4. Visualización
+Dentro se guardarán los videos procesados.
 
-Dibuja rectángulos alrededor de cada dado
-Anota el número de puntos detectados
-Ordena dados de izquierda a derecha
+---
 
-Modo Debug Visual
-En la primera ejecución, el sistema muestra visualizaciones intermedias:
+## ▶️ Cómo ejecutar el código
 
-Frame detectado como quieto: Momento exacto de la captura
-Máscara de color: Segmentación HSV de tonos rojos
-Contornos detectados: Candidatos a dados
-Detalle de un dado:
+Desde la terminal, corré:
 
-Escala de grises
-Desenfoque gaussiano
-Detección de bordes (Canny)
-Círculos detectados (puntos)
+```bash
+python main.py
+```
 
+Esto procesará las tiradas en orden y generará archivos como:
 
+```
+salidas/tirada_1_reconocimiento_dados.mp4
+salidas/tirada_2_reconocimiento_dados.mp4
+salidas/tirada_3_reconocimiento_dados.mp4
+salidas/tirada_4_reconocimiento_dados.mp4
+```
 
-Parámetros Ajustables
-Segmentación de Color
-python# En extraer_dados_rojos()
-rojo_1 = cv2.inRange(hsv, (0, 50, 50), (10, 255, 255))
-rojo_2 = cv2.inRange(hsv, (170, 50, 50), (180, 255, 255))
-Detección de Quietud
-python# En detectar_quietud()
-umbral = 45  # Diferencia máxima de área entre frames
-Filtrado de Dados
-python# En analizar_dados()
-area_min = 4300  # Área mínima del contorno
-area_max = 6400  # Área máxima del contorno
-Detección de Puntos
-python# En contar_puntos()
-circulos = cv2.HoughCircles(
-    bordes, cv2.HOUGH_GRADIENT,
-    dp=1.2,           # Resolución del acumulador
-    minDist=8,        # Distancia mínima entre círculos
-    param1=25,        # Umbral superior para Canny
-    param2=10,        # Umbral del acumulador
-    minRadius=5,      # Radio mínimo
-    maxRadius=8       # Radio máximo
-)
-Salida
-El sistema imprime en consola:
-Procesando: tirada_1.mp4...
-[INFO] Quietud detectada en t = 2.34s
-=== RESULTADO tirada_1.mp4 ===
-Valores detectados: [3, 5, 2]
-============================
+---
 
-[OK] Guardado: salidas/tirada_1_reconocimiento_dados.mp4
-Limitaciones
+## ⚙️ Parámetros importantes del script
 
-Optimizado para dados rojos únicamente
-Requiere fondo contrastante
-Iluminación uniforme recomendada
-Los dados deben estar completamente visibles (sin superposición)
+### `tiempo_ignorar`
+Segundos iniciales donde se ignora el movimiento.  
+**Valor por defecto:** `1.58` segundos.
 
-Mejoras Futuras
+### `debug_visual=True`
+Solo aplicado al primer video. Muestra:
 
- Soporte para múltiples colores de dados
- Detección con oclusión parcial
- Calibración automática de umbrales
- Interfaz gráfica (GUI)
- Exportación de resultados a JSON/CSV
+- Frame quieto detectado  
+- Máscara de color rojo  
+- Contornos  
+- Pasos internos del conteo de puntos (solo para 1 dado)
+
+Si no querés ver estos gráficos, configurá:
+
+```python
+debug_visual = False
+```
+
+---
+
+## 🧠 ¿Cómo funciona?
+
+### 1. Detección de rojo  
+Convierte el frame a HSV y detecta zonas rojas.
+
+### 2. Contornos  
+Aplica Canny + dilatación para identificar candidatos a dados.
+
+### 3. Quietud  
+Compara el área total de contornos entre frames consecutivos.  
+Si la variación es menor al umbral → **los dados están quietos**.
+
+### 4. Conteo de puntos  
+Se recorta cada dado y se detectan círculos con `HoughCircles`.
+
+### 5. Salida  
+Se dibuja un rectángulo y se etiqueta:  
+`Dado N: X puntos`.# 🎲 Detector de Dados en Video (OpenCV)
+
+Este proyecto analiza videos de tiradas de dados y detecta automáticamente:
+
+- La posición de cada dado  
+- La cantidad de puntos en su cara superior  
+- El instante en el que los dados quedan quietos  
+- Un video de salida con anotaciones
+
+El código utiliza **OpenCV**, **NumPy** y **Matplotlib**.
+
+---
+
+## 📦 Requisitos
+
+Instalá las dependencias ejecutando:
+
+```bash
+pip install opencv-python numpy matplotlib
+```
+
+---
+
+## 📁 Estructura esperada
+
+El script espera encontrar los siguientes archivos de video en el mismo directorio donde está `main.py`:
+
+```
+tirada_1.mp4
+tirada_2.mp4
+tirada_3.mp4
+tirada_4.mp4
+```
+
+Además, el script crea automáticamente la carpeta:
+
+```
+salidas/
+```
+
+Dentro se guardarán los videos procesados.
+
+---
+
+## ▶️ Cómo ejecutar el código
+
+Desde la terminal, corré:
+
+```bash
+python main.py
+```
+
+Esto procesará las tiradas en orden y generará archivos como:
+
+```
+salidas/tirada_1_reconocimiento_dados.mp4
+salidas/tirada_2_reconocimiento_dados.mp4
+salidas/tirada_3_reconocimiento_dados.mp4
+salidas/tirada_4_reconocimiento_dados.mp4
+```
+
+---
+
+## ⚙️ Parámetros importantes del script
+
+### `tiempo_ignorar`
+Segundos iniciales donde se ignora el movimiento.  
+**Valor por defecto:** `1.58` segundos.
+
+### `debug_visual=True`
+Solo aplicado al primer video. Muestra:
+
+- Frame quieto detectado  
+- Máscara de color rojo  
+- Contornos  
+- Pasos internos del conteo de puntos (solo para 1 dado)
+
+Si no querés ver estos gráficos, configurá:
+
+```python
+debug_visual = False
+```
+
+---
+
+## 🧠 ¿Cómo funciona?
+
+### 1. Detección de rojo  
+Convierte el frame a HSV y detecta zonas rojas.
+
+### 2. Contornos  
+Aplica Canny + dilatación para identificar candidatos a dados.
+
+### 3. Quietud  
+Compara el área total de contornos entre frames consecutivos.  
+Si la variación es menor al umbral → **los dados están quietos**.
+
+### 4. Conteo de puntos  
+Se recorta cada dado y se detectan círculos con `HoughCircles`.
+
+### 5. Salida  
+Se dibuja un rectángulo y se etiqueta:  
+`Dado N: X puntos`.
